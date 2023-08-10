@@ -1,6 +1,6 @@
 mod utils;
 
-use std::fmt::Display;
+use std::{fmt::Display, iter::repeat};
 use wasm_bindgen::prelude::*;
 
 pub use utils::set_panic_hook;
@@ -47,7 +47,7 @@ impl Universe {
                 (0..width)
                     .map(|x| {
                         let res = y * width + x;
-                        if res % 2 == 0 || res % 7 == 0 {
+                        if res % 5 == 0 || res % 7 == 0 {
                             Cell::Alive
                         } else {
                             Cell::Dead
@@ -56,6 +56,33 @@ impl Universe {
                     .collect()
             })
             .collect();
+
+        Self {
+            width,
+            height,
+            cells,
+        }
+    }
+
+    pub fn from_vec(arr: Vec<u8>, width: u32, height: u32) -> Self {
+        assert!(width > 0);
+        assert!(height > 0);
+
+        let mut cells = repeat(Vec::with_capacity(width as usize))
+            .take(height as usize)
+            .collect::<Vec<_>>();
+
+        for y in 0..height {
+            for x in 0..width {
+                let (y, x) = (y as usize, x as usize);
+                let index = y * width as usize + x;
+                cells[y].push(match arr[index] {
+                    0 => Cell::Dead,
+                    1 => Cell::Alive,
+                    _ => panic!("Invalid cell state"),
+                });
+            }
+        }
 
         Self {
             width,
