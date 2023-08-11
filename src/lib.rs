@@ -6,6 +6,12 @@ use wasm_bindgen::prelude::*;
 pub use utils::set_panic_hook;
 
 #[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn info(s: &str);
+}
+
+#[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Cell {
     Dead = 0,
@@ -47,7 +53,7 @@ impl Universe {
                 (0..width)
                     .map(|x| {
                         let res = y * width + x;
-                        if res % 5 == 0 || res % 7 == 0 {
+                        if res % 2 == 0 || res % 7 == 0 {
                             Cell::Alive
                         } else {
                             Cell::Dead
@@ -91,39 +97,60 @@ impl Universe {
         }
     }
 
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    pub fn cells(&self, height: usize) -> *const Cell {
+        self.cells[height].as_ptr()
+    }
+
     pub fn next_tick(&mut self) {
+        let mut cells = self.cells.clone();
+
         for y in 0..self.height {
             for x in 0..self.width {
                 let (y, x) = (y as usize, x as usize);
 
                 match (&self.cells[y][x], Self::cell_alive_neighbors(&self, y, x)) {
                     (&Cell::Alive, 2) | (&Cell::Alive, 3) => {}
-                    (&Cell::Alive, _) => self.cells[y][x] = Cell::Dead,
-                    (&Cell::Dead, 3) => self.cells[y][x] = Cell::Alive,
+                    (&Cell::Dead, 3) => cells[y][x] = Cell::Alive,
+                    (&Cell::Alive, _) => cells[y][x] = Cell::Dead,
                     (&Cell::Dead, _) => {}
                 }
             }
         }
+
+        self.cells = cells;
     }
 
-    pub fn render(&mut self) -> String {
+    pub fn render(&self) -> String {
         self.to_string()
     }
 
-    fn cell_alive_neighbors(&self, y: usize, x: usize) -> u32 {
+    fn cell_alive_neighbors(&self, y: usize, x: usize) -> usize {
         let mut count = 0;
 
-        let y_min = y.saturating_sub(1);
-        let y_max = std::cmp::min(y + 1, self.height as usize - 1);
-        let x_min = x.saturating_sub(1);
-        let x_max = std::cmp::min(x + 1, self.width as usize - 1);
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if dy == 0 && dx == 0 {
+                    continue;
+                }
 
-        for i in y_min..=y_max {
-            for j in x_min..=x_max {
-                match self.cells[i][j] {
+                let (y, x) = (y as i32, x as i32);
+                let (height, width) = (self.height as i32, self.width as i32);
+
+                let new_y = (((dy + y) % height) + height) % height;
+                let new_x = (((dx + x) % width) + width) % width;
+
+                match self.cells[new_y as usize][new_x as usize] {
                     Cell::Alive => count += 1,
                     Cell::Dead => {}
-                }
+                };
             }
         }
 
@@ -138,6 +165,7 @@ mod test {
     #[test]
     fn test_saturating_remove() {
         assert_eq!(0_usize.saturating_sub(5), 0);
+        assert_eq!(-1_i32 % 64, -1);
     }
 
     #[test]
