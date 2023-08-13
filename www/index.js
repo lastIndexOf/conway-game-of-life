@@ -1,15 +1,17 @@
 import * as wasm from "conway-game-of-life";
 // 直接获取 wasm 中的内存地址
 import { memory } from "conway-game-of-life/conway_game_of_life_bg";
+import { FPS } from "./fps";
 
-const CELL_SIZE = 20; // px
+const CELL_SIZE = 5; // px
 const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
 
+const fps = new FPS(document.querySelector("#fps"));
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("game-of-life-canvas");
-const universe = wasm.Universe.new(64, 64);
+const universe = wasm.Universe.new(256, 256);
 const width = universe.width();
 const height = universe.height();
 
@@ -99,13 +101,14 @@ const refresh = (fn, timer = 16.667) => {
 };
 
 const renderLoop = () => {
-  universe.next_tick();
+  fps.render();
 
+  universe.next_tick();
   drawCell();
   drawGrid();
 
   if (!isPaused) {
-    refresh(renderLoop, 250);
+    refresh(renderLoop, 8.6);
   }
 };
 

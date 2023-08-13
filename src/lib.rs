@@ -5,6 +5,7 @@ use std::{fmt::Display, iter::repeat};
 use wasm_bindgen::prelude::*;
 
 pub use utils::set_panic_hook;
+use web_sys::console;
 
 #[wasm_bindgen]
 extern "C" {
@@ -25,6 +26,23 @@ pub struct Universe {
     width: u32,
     height: u32,
     cells: Vec<Vec<Cell>>,
+}
+
+struct Timer<'a> {
+    name: &'a str,
+}
+
+impl<'a> Timer<'a> {
+    fn new(name: &'a str) -> Self {
+        console::time_with_label(name);
+        Self { name }
+    }
+}
+
+impl<'a> Drop for Timer<'a> {
+    fn drop(&mut self) {
+        console::time_end_with_label(self.name);
+    }
 }
 
 impl Display for Universe {
@@ -130,6 +148,8 @@ impl Universe {
     }
 
     pub fn next_tick(&mut self) {
+        let _timer = Timer::new("tick_render");
+
         let mut cells = self.cells.clone();
 
         for y in 0..self.height {
