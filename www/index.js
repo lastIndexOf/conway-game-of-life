@@ -72,7 +72,7 @@ const renderLoop = () => {
 
   universe.next_tick();
 
-  refresh(renderLoop, 500);
+  refresh(renderLoop, 8.4);
 };
 
 refresh(renderLoop);

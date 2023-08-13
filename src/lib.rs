@@ -109,6 +109,20 @@ impl Universe {
         self.cells[height].as_ptr()
     }
 
+    pub fn set_height(&mut self, height: u32) {
+        self.height = height;
+        self.cells = (0..height)
+            .map(|_| (0..self.width).map(|_| Cell::Dead).collect())
+            .collect();
+    }
+
+    pub fn set_width(&mut self, width: u32) {
+        self.width = width;
+        self.cells = (0..self.height)
+            .map(|_| (0..width).map(|_| Cell::Dead).collect())
+            .collect();
+    }
+
     pub fn next_tick(&mut self) {
         let mut cells = self.cells.clone();
 
@@ -155,6 +169,18 @@ impl Universe {
         }
 
         count
+    }
+}
+
+impl Universe {
+    pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
+        &self.cells
+    }
+
+    pub fn set_cells(&mut self, cells: &[(usize, usize)]) {
+        for &(y, x) in cells {
+            self.cells[y][x] = Cell::Alive;
+        }
     }
 }
 
