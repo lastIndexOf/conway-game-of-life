@@ -150,32 +150,40 @@ impl Universe {
     pub fn next_tick(&mut self) {
         let _timer = Timer::new("tick_render");
 
-        let mut cells = self.cells.clone();
+        let mut cells = {
+            let _timer = Timer::new("clone cells");
+            self.cells.clone()
+        };
 
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let (y, x) = (y as usize, x as usize);
+        {
+            let _timer = Timer::new("calc next tick");
 
-                let live_neighbors = Self::cell_alive_neighbors(&self, y, x);
+            for y in 0..self.height {
+                for x in 0..self.width {
+                    let (y, x) = (y as usize, x as usize);
 
-                // print log to browser console
-                // log!(
-                //     "cell[{}, {}] is initially {:?} and has {} live neighbors",
-                //     x,
-                //     y,
-                //     self.cells[y][x],
-                //     live_neighbors
-                // );
+                    let live_neighbors = Self::cell_alive_neighbors(&self, y, x);
 
-                match (&self.cells[y][x], live_neighbors) {
-                    (&Cell::Alive, 2) | (&Cell::Alive, 3) => {}
-                    (&Cell::Dead, 3) => cells[y][x] = Cell::Alive,
-                    (&Cell::Alive, _) => cells[y][x] = Cell::Dead,
-                    (&Cell::Dead, _) => {}
+                    // print log to browser console
+                    // log!(
+                    //     "cell[{}, {}] is initially {:?} and has {} live neighbors",
+                    //     x,
+                    //     y,
+                    //     self.cells[y][x],
+                    //     live_neighbors
+                    // );
+
+                    match (&self.cells[y][x], live_neighbors) {
+                        (&Cell::Alive, 2) | (&Cell::Alive, 3) => {}
+                        (&Cell::Dead, 3) => cells[y][x] = Cell::Alive,
+                        (&Cell::Alive, _) => cells[y][x] = Cell::Dead,
+                        (&Cell::Dead, _) => {}
+                    }
                 }
             }
         }
 
+        let _timer = Timer::new("free old cells");
         self.cells = cells;
     }
 

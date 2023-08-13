@@ -38,7 +38,7 @@ const drawGrid = () => {
   ctx.stroke();
 };
 
-const drawCell = () => {
+const drawCells = () => {
   ctx.beginPath();
 
   for (let y = 0; y < height; y++) {
@@ -87,7 +87,7 @@ const onCanvasClick = (event) => {
 
   universe.toggle_cell(y, x);
 
-  drawCell();
+  drawCells();
   drawGrid();
 };
 
@@ -103,8 +103,11 @@ const refresh = (fn, timer = 16.667) => {
 const renderLoop = () => {
   fps.render();
 
-  universe.next_tick();
-  drawCell();
+  for (let i = 0; i < 10; i++) {
+    universe.next_tick();
+  }
+
+  drawCells();
   drawGrid();
 
   if (!isPaused) {
