@@ -1,3 +1,4 @@
+mod macros;
 mod utils;
 
 use std::{fmt::Display, iter::repeat};
@@ -48,6 +49,11 @@ impl Display for Universe {
 #[wasm_bindgen]
 impl Universe {
     pub fn new(width: u32, height: u32) -> Self {
+        // ⬇️ add error backtrace to console
+        set_panic_hook();
+
+        // panic!("error from rust");
+
         let cells = (0..height)
             .map(|y| {
                 (0..width)
@@ -130,7 +136,18 @@ impl Universe {
             for x in 0..self.width {
                 let (y, x) = (y as usize, x as usize);
 
-                match (&self.cells[y][x], Self::cell_alive_neighbors(&self, y, x)) {
+                let live_neighbors = Self::cell_alive_neighbors(&self, y, x);
+
+                // print log to browser console
+                // log!(
+                //     "cell[{}, {}] is initially {:?} and has {} live neighbors",
+                //     x,
+                //     y,
+                //     self.cells[y][x],
+                //     live_neighbors
+                // );
+
+                match (&self.cells[y][x], live_neighbors) {
                     (&Cell::Alive, 2) | (&Cell::Alive, 3) => {}
                     (&Cell::Dead, 3) => cells[y][x] = Cell::Alive,
                     (&Cell::Alive, _) => cells[y][x] = Cell::Dead,
@@ -140,6 +157,13 @@ impl Universe {
         }
 
         self.cells = cells;
+    }
+
+    pub fn toggle_cell(&mut self, y: usize, x: usize) {
+        match self.cells[y][x] {
+            Cell::Alive => self.cells[y][x] = Cell::Dead,
+            Cell::Dead => self.cells[y][x] = Cell::Alive,
+        };
     }
 
     pub fn render(&self) -> String {

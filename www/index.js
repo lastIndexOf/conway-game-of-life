@@ -2,7 +2,7 @@ import * as wasm from "conway-game-of-life";
 // 直接获取 wasm 中的内存地址
 import { memory } from "conway-game-of-life/conway_game_of_life_bg";
 
-const CELL_SIZE = 10; // px
+const CELL_SIZE = 20; // px
 const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
@@ -23,14 +23,14 @@ const drawGrid = () => {
   ctx.beginPath();
   ctx.strokeStyle = GRID_COLOR;
 
-  for (let i = 0; i < width; i++) {
+  for (let i = 0; i <= height; i++) {
     ctx.moveTo(i * CELL_SIZE, 0);
-    ctx.lineTo(i * CELL_SIZE, (height - 1) * CELL_SIZE);
+    ctx.lineTo(i * CELL_SIZE, height * CELL_SIZE);
   }
 
-  for (let i = 0; i < width; i++) {
+  for (let i = 0; i <= width; i++) {
     ctx.moveTo(0, i * CELL_SIZE);
-    ctx.lineTo((width - 1) * CELL_SIZE, i * CELL_SIZE);
+    ctx.lineTo(width * CELL_SIZE, i * CELL_SIZE);
   }
 
   ctx.stroke();
@@ -60,6 +60,38 @@ const drawCell = () => {
   ctx.stroke();
 };
 
+let isPaused = false;
+
+const playOrPause = () => {
+  if (!isPaused) {
+    isPaused = true;
+  } else {
+    isPaused = false;
+    refresh(renderLoop);
+  }
+};
+
+const onCanvasClick = (event) => {
+  const boundingRect = canvas.getBoundingClientRect();
+
+  const scaleX = canvas.width / boundingRect.width;
+  const scaleY = canvas.height / boundingRect.height;
+
+  const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
+  const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+
+  const y = Math.floor(canvasTop / CELL_SIZE);
+  const x = Math.floor(canvasLeft / CELL_SIZE);
+
+  universe.toggle_cell(y, x);
+
+  drawCell();
+  drawGrid();
+};
+
+document.querySelector("#play-pause").addEventListener("click", playOrPause);
+canvas.addEventListener("click", onCanvasClick);
+
 const refresh = (fn, timer = 16.667) => {
   setTimeout(() => {
     fn();
@@ -67,12 +99,14 @@ const refresh = (fn, timer = 16.667) => {
 };
 
 const renderLoop = () => {
+  universe.next_tick();
+
   drawCell();
   drawGrid();
 
-  universe.next_tick();
-
-  refresh(renderLoop, 8.4);
+  if (!isPaused) {
+    refresh(renderLoop, 250);
+  }
 };
 
 refresh(renderLoop);

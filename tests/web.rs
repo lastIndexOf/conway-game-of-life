@@ -1,6 +1,4 @@
-//! Test suite for the Web and headless browsers.
-
-#![cfg(target_arch = "wasm32")]
+// #![cfg(target_arch = "wasm32")]
 
 extern crate wasm_bindgen_test;
 use std::assert_eq;
@@ -16,9 +14,8 @@ fn pass() {
 }
 
 fn input_spaceship() -> Universe {
-    use conway_game_of_life::Universe;
-
     let mut universe = Universe::new(0, 0);
+
     universe.set_height(6);
     universe.set_width(6);
     universe.set_cells(&[(1, 2), (2, 3), (3, 1), (3, 2), (3, 3)]);
@@ -39,7 +36,7 @@ fn expected_spaceship() -> Universe {
 #[wasm_bindgen_test]
 fn test_tick() {
     let mut input_universe = input_spaceship();
-    let mut expected_universe = expected_spaceship();
+    let expected_universe = expected_spaceship();
 
     input_universe.next_tick();
 
